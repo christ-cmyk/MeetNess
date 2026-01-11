@@ -138,3 +138,5 @@ GitHub.sublime-settings
 .history
 
 .env*
+.env.dev
+.env.prod
