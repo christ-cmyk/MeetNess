@@ -1,1 +1,1 @@
-from .dev import *
+from .settings.dev import *
