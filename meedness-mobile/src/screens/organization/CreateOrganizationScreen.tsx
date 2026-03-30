@@ -24,7 +24,7 @@ const ORG_TYPES: { value: OrganizationType; label: string; icon: string; descrip
   { value: 'team', label: 'Équipe', icon: 'shield', description: 'Pour votre équipe ou club' },
 ];
 
-export function CreateOrganizationScreen() {
+export  function CreateOrganizationScreen() {
   const { createOrganization, isLoading, error, clearError } = useOrganizationStore();
 
   const [name, setName] = useState('');

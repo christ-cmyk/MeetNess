@@ -1,12 +1,12 @@
 import { useCallback, useEffect } from 'react';
 import { useAuthStore } from '../store/stores/useAuthStore';
 import { authAPI } from '../services/api/auth.api';
-import type { 
-  LoginCredentials, 
-  RegisterData, 
-  ForgotPasswordData, 
+import type {
+  LoginCredentials,
+  RegisterData,
+  ForgotPasswordData,
   ResetPasswordData,
-  UserRole 
+  UserRole,
 } from '../types/user.types';
 
 export function useAuth() {
@@ -15,13 +15,14 @@ export function useAuth() {
     isAuthenticated,
     isLoading,
     isInitialized,
-    needsRoleSelection, // ← AJOUTÉ
+    needsRoleSelection,
+    intentRole,
     error,
     initialize,
     login,
     register,
     logout,
-    chooseRole, // ← AJOUTÉ
+    chooseRole,
     clearError,
   } = useAuthStore();
 
@@ -63,7 +64,6 @@ export function useAuth() {
     []
   );
 
-  // ← AJOUTÉ
   const handleChooseRole = useCallback(
     async (role: UserRole) => {
       await chooseRole(role);
@@ -87,12 +87,13 @@ export function useAuth() {
     isAuthenticated,
     isLoading,
     isInitialized,
-    needsRoleSelection, // ← AJOUTÉ
+    needsRoleSelection,
+    intentRole,
     error,
     login: handleLogin,
     register: handleRegister,
     logout: handleLogout,
-    chooseRole: handleChooseRole, // ← AJOUTÉ
+    chooseRole: handleChooseRole,
     forgotPassword: handleForgotPassword,
     resetPassword: handleResetPassword,
     refreshProfile,

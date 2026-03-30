@@ -2,10 +2,12 @@
 
 import { create } from 'zustand';
 import { organizationAPI } from '../../services/api/organization.api';
-import type { Organization, Invitation, CreateOrganizationData } from '../../types/organization';
+import type { Organization, Invitation, Team, MemberRole, CreateOrganizationData } from '../../types/organization';
 
 interface OrganizationState {
   organization: Organization | null;
+  myRole: MemberRole | null;
+  teams: Team[];
   pendingInvitations: Invitation[];
   isLoading: boolean;
   error: string | null;
@@ -14,6 +16,7 @@ interface OrganizationState {
 interface OrganizationActions {
   createOrganization: (data: CreateOrganizationData) => Promise<Organization>;
   fetchMyOrganization: () => Promise<void>;
+  fetchTeams: () => Promise<void>;
   checkPendingInvitations: () => Promise<Invitation[]>;
   acceptInvitation: (invitationId: string) => Promise<void>;
   clearOrganization: () => void;
@@ -24,6 +27,8 @@ type OrganizationStore = OrganizationState & OrganizationActions;
 
 export const useOrganizationStore = create<OrganizationStore>((set) => ({
   organization: null,
+  myRole: null,
+  teams: [],
   pendingInvitations: [],
   isLoading: false,
   error: null,
@@ -32,7 +37,7 @@ export const useOrganizationStore = create<OrganizationStore>((set) => ({
     try {
       set({ isLoading: true, error: null });
       const org = await organizationAPI.createOrganization(data);
-      set({ organization: org, isLoading: false });
+      set({ organization: org, myRole: 'owner', isLoading: false });
       return org;
     } catch (error: any) {
       const message = error.response?.data?.message || error.message || 'Échec de la création';
@@ -41,19 +46,34 @@ export const useOrganizationStore = create<OrganizationStore>((set) => ({
     }
   },
 
-  fetchMyOrganization: async () => {
+fetchMyOrganization: async () => {
+  try {
+    set({ isLoading: true, error: null });
+    const data = await organizationAPI.getMyOrganization();
+    
+    if (!data) {
+      // Pas d'organisation trouvée
+      set({ organization: null, myRole: null, isLoading: false });
+      return;
+    }
+
+    set({
+      organization: data.organization,
+      myRole: data.role,
+      isLoading: false,
+    });
+  } catch (error: any) {
+    set({ organization: null, myRole: null, isLoading: false });
+  }
+},
+  fetchTeams: async () => {
     try {
       set({ isLoading: true, error: null });
-      const org = await organizationAPI.getMyOrganization();
-      set({ organization: org, isLoading: false });
+      const teams = await organizationAPI.getTeams();
+      set({ teams, isLoading: false });
     } catch (error: any) {
-      // 404 = pas encore d'organisation
-      if (error.response?.status === 404) {
-        set({ organization: null, isLoading: false });
-      } else {
-        const message = error.response?.data?.message || error.message || 'Erreur de chargement';
-        set({ error: message, isLoading: false });
-      }
+      const message = error.response?.data?.message || error.message || 'Erreur de chargement des équipes';
+      set({ error: message, isLoading: false });
     }
   },
 
@@ -73,8 +93,13 @@ export const useOrganizationStore = create<OrganizationStore>((set) => ({
   acceptInvitation: async (invitationId: string) => {
     try {
       set({ isLoading: true, error: null });
-      const org = await organizationAPI.acceptInvitation(invitationId);
-      set({ organization: org, isLoading: false, pendingInvitations: [] });
+      const result = await organizationAPI.acceptInvitation(invitationId);
+      set({
+        organization: result.organization || result,
+        myRole: result.role || 'member',
+        isLoading: false,
+        pendingInvitations: [],
+      });
     } catch (error: any) {
       const message = error.response?.data?.message || error.message || "Échec de l'acceptation";
       set({ error: message, isLoading: false });
@@ -82,6 +107,6 @@ export const useOrganizationStore = create<OrganizationStore>((set) => ({
     }
   },
 
-  clearOrganization: () => set({ organization: null, pendingInvitations: [], error: null }),
+  clearOrganization: () => set({ organization: null, myRole: null, teams: [], pendingInvitations: [], error: null }),
   clearError: () => set({ error: null }),
 }));

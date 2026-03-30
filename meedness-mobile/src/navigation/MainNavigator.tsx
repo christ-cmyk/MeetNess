@@ -7,10 +7,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 
 import { HomeScreen } from '../screens/main/HomeScreen';
-import { ChatScreen } from '../screens/main/ChatScreen';
-import { TasksScreen } from '../screens/main/TasksScreen';
+import { ChatNavigator } from './ChatNavigator';
+import { TasksNavigator } from './TasksNavigator';
 import { GoalsScreen } from '../screens/main/GoalsScreen';
 import { ProfileScreen } from '../screens/main/ProfileScreen';
+import { useChatStore } from '../store/stores/useChatStore';
 
 export type MainTabParamList = {
   Home: undefined;
@@ -39,6 +40,8 @@ const TAB_LABELS: Record<keyof MainTabParamList, string> = {
 };
 
 export function MainNavigator() {
+  const totalUnread = useChatStore((s) => s.rooms.reduce((sum, r) => sum + r.unread_count, 0));
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -67,18 +70,19 @@ export function MainNavigator() {
       />
       <Tab.Screen
         name="Chat"
-        component={ChatScreen}
+        component={ChatNavigator}
         options={{
           tabBarLabel: TAB_LABELS.Chat,
-          tabBarBadge: undefined, // TODO: nombre de messages non lus
+          tabBarBadge: totalUnread > 0 ? (totalUnread > 99 ? '99+' : totalUnread) : undefined,
+          tabBarBadgeStyle: styles.badge,
         }}
       />
       <Tab.Screen
         name="Tasks"
-        component={TasksScreen}
+        component={TasksNavigator}
         options={{
           tabBarLabel: TAB_LABELS.Tasks,
-          tabBarBadge: undefined, // TODO: nombre de tâches en attente
+          tabBarBadge: undefined,
         }}
       />
       <Tab.Screen
@@ -107,5 +111,12 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: 11,
     fontWeight: '500',
+  },
+  badge: {
+    backgroundColor: '#EF4444',
+    fontSize: 10,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
   },
 });

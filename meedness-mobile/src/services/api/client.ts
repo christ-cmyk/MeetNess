@@ -1,10 +1,7 @@
-// Client HTTP Axios configuré pour MeedNess - React Native
-
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL, AUTH_ENDPOINTS, STORAGE_KEYS, API_TIMEOUT } from '../../config/env';
 import { storageService } from '../storage/AsyncStorageService';
 
-// Créer l'instance Axios
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
@@ -13,7 +10,6 @@ const apiClient = axios.create({
   },
 });
 
-// Flag pour éviter les boucles infinies de refresh
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (token: string) => void;
@@ -31,32 +27,26 @@ const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Intercepteur de requête - Ajoute le token JWT
+// Intercepteur requête - Ajoute le token JWT
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     const token = await storageService.getSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
-    
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Intercepteur de réponse - Gère le refresh token automatique
+// Intercepteur réponse - Gère le refresh token automatique
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Si erreur 401 et pas encore en retry
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
-        // Attendre que le refresh soit terminé
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -74,14 +64,17 @@ apiClient.interceptors.response.use(
 
       try {
         const refreshToken = await storageService.getSecureItem(STORAGE_KEYS.REFRESH_TOKEN);
-        
+
         if (!refreshToken) {
           throw new Error('No refresh token');
         }
 
-        const response = await axios.post(AUTH_ENDPOINTS.REFRESH_TOKEN, {
-          refresh: refreshToken,
-        });
+        // ← CORRECTION : utiliser API_BASE_URL + le chemin complet
+        const response = await axios.post(
+          `${API_BASE_URL}${AUTH_ENDPOINTS.REFRESH_TOKEN}`,
+          { refresh: refreshToken },
+          { headers: { 'Content-Type': 'application/json' } }
+        );
 
         const { access } = response.data;
         await storageService.setSecureItem(STORAGE_KEYS.ACCESS_TOKEN, access);
@@ -91,16 +84,27 @@ apiClient.interceptors.response.use(
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${access}`;
         }
-        
+
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError as Error, null);
-        
-        // Nettoyer les tokens - l'utilisateur doit se reconnecter
+
+        // Nettoyer les tokens
         await storageService.removeSecureItem(STORAGE_KEYS.ACCESS_TOKEN);
         await storageService.removeSecureItem(STORAGE_KEYS.REFRESH_TOKEN);
         await storageService.removeItem(STORAGE_KEYS.USER);
-        
+
+        // ← CORRECTION : import dynamique pour éviter les dépendances circulaires
+        const { useAuthStore } = await import('../../store/stores/useAuthStore');
+        useAuthStore.setState({
+          user: null,
+          isAuthenticated: false,
+          needsRoleSelection: false,
+          intentRole: null,
+          isLoading: false,
+          error: null,
+        });
+
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

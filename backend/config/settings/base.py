@@ -24,6 +24,7 @@ ALLOWED_HOSTS = config('DJANGO_ALLOWED_HOSTS', cast=Csv())
 
 INSTALLED_APPS = [
     # Django
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,6 +51,9 @@ INSTALLED_APPS = [
     'apps.subscriptions',
 ]
 
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+ASGI_APPLICATION = 'config.asgi.application'
 # ═══════════════════════════════════════════════════════════════
 # MIDDLEWARE
 # ═══════════════════════════════════════════════════════════════
@@ -152,8 +156,13 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Tailles max fichiers
+MAX_IMAGE_SIZE = 10 * 1024 * 1024   # 10MB
+MAX_FILE_SIZE = 25 * 1024 * 1024    # 25MB
 
 # ═══════════════════════════════════════════════════════════════
 # DEFAULT PRIMARY KEY
@@ -212,7 +221,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [(config('REDIS_URL'))],
+            'hosts': [('127.0.0.1', 6379)],
         },
     },
 }

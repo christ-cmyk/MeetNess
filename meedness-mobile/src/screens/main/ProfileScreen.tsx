@@ -6,9 +6,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '../../theme';
 import { Button } from '../../components/common/Button';
 import { useAuth } from '../../hooks/useAuth';
+import { useOrganizationStore } from '../../store/stores/useOrganizationStore';
+
+const ROLE_LABELS: Record<string, string> = {
+  owner: 'Propriétaire',
+  admin: 'Administrateur',
+  member: 'Membre',
+};
 
 export function ProfileScreen() {
   const { user, logout } = useAuth();
+  const { organization, myRole } = useOrganizationStore();
 
   return (
     <View style={styles.container}>
@@ -29,9 +37,22 @@ export function ProfileScreen() {
         </View>
       </View>
 
-      <View style={styles.placeholder}>
-        <Text style={styles.subtitle}>Profil complet — Disponible prochainement</Text>
-      </View>
+      {organization && (
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Ionicons name="business-outline" size={20} color={colors.text.tertiary} />
+            <Text style={styles.infoText}>{organization.name}</Text>
+          </View>
+          {myRole && (
+            <View style={styles.infoRow}>
+              <Ionicons name="shield-outline" size={20} color={colors.text.tertiary} />
+              <Text style={styles.infoText}>{ROLE_LABELS[myRole] || myRole}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      <View style={styles.spacer} />
 
       <Button onPress={logout} variant="outline" fullWidth>
         Se déconnecter
@@ -66,7 +87,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.primary,
     borderRadius: 16,
     padding: spacing.xl,
-    marginBottom: spacing['2xl'],
+    marginBottom: spacing.md,
     gap: spacing.md,
   },
   infoRow: {
@@ -78,13 +99,7 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.text.primary,
   },
-  placeholder: {
+  spacer: {
     flex: 1,
-    justifyContent: 'center',
-  },
-  subtitle: {
-    ...typography.body,
-    color: colors.text.tertiary,
-    textAlign: 'center',
   },
 });

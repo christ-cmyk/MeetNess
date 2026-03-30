@@ -35,6 +35,7 @@ class RegisterView(generics.CreateAPIView):
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
+        print("📥 Register data reçue:", request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         
@@ -62,26 +63,22 @@ class LoginView(APIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = LoginSerializer
     
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        
-        user = serializer.validated_data['user']
-        
-        # Générer les tokens JWT
-        refresh = RefreshToken.for_user(user)
-        
-        # Préparer la réponse
-        user_data = UserSerializer(user).data
-        
-        return Response({
-            'user': user_data,
-            'tokens': {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            },
-            'message': 'Connexion réussie !'
-        }, status=status.HTTP_200_OK)
+def post(self, request):
+    try:
+        refresh_token = request.data.get('refresh')
+        if refresh_token:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        return Response(
+            {'message': 'Déconnexion réussie.'},
+            status=status.HTTP_200_OK
+        )
+    except Exception:
+        # Ignorer les erreurs de blacklist
+        return Response(
+            {'message': 'Déconnexion réussie.'},
+            status=status.HTTP_200_OK
+        )
 
 
 class LogoutView(APIView):

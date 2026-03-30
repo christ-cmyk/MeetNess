@@ -7,7 +7,8 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   isInitialized: boolean;
-  needsRoleSelection: boolean; // ← NOUVEAU
+  needsRoleSelection: boolean;
+  intentRole: 'admin' | 'member' | null;
   error: string | null;
 }
 
@@ -23,12 +24,13 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions;
 
-export const useAuthStore = create<AuthStore>((set, get) => ({
+export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
   isInitialized: false,
-  needsRoleSelection: false, // ← NOUVEAU
+  needsRoleSelection: false,
+  intentRole: null,
   error: null,
 
   initialize: async () => {
@@ -44,6 +46,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         isInitialized: true,
         isLoading: false,
         needsRoleSelection: false,
+        intentRole: isAuth && user ? user.role : null,
       });
     } catch (error) {
       set({
@@ -52,6 +55,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         isInitialized: true,
         isLoading: false,
         needsRoleSelection: false,
+        intentRole: null,
       });
     }
   },
@@ -63,7 +67,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       set({
         user: response.user,
         isAuthenticated: true,
-        needsRoleSelection: false, // Login = rôle déjà défini
+        needsRoleSelection: false,
+        intentRole: response.user.role,
         isLoading: false,
       });
     } catch (error: any) {
@@ -79,8 +84,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const response = await authAPI.register(userData);
       set({
         user: response.user,
-        isAuthenticated: false,         // ← Pas encore authentifié
-        needsRoleSelection: true,       // ← Doit choisir son rôle
+        isAuthenticated: false,
+        needsRoleSelection: true,
+        intentRole: null,
         isLoading: false,
       });
     } catch (error: any) {
@@ -97,8 +103,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       console.log('📦 Response chooseRole:', response);
       set({
         user: response.user,
-        isAuthenticated: true,      // ← Maintenant authentifié
-        needsRoleSelection: false,  // ← Rôle choisi
+        isAuthenticated: true,
+        needsRoleSelection: false,
+        intentRole: role,
         isLoading: false,
       });
     } catch (error: any) {
@@ -117,6 +124,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         user: null,
         isAuthenticated: false,
         needsRoleSelection: false,
+        intentRole: null,
         isLoading: false,
         error: null,
       });

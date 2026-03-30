@@ -1,5 +1,4 @@
 // Écran d'inscription pour MeedNess - React Native
-// Source: src/pages/auth/Register.tsx (adapté)
 
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
@@ -7,6 +6,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { formatApiError } from '../../utils/errorHandler';
 import { Screen } from '../../components/layout/Screen';
@@ -19,8 +19,18 @@ import { registerSchema, type RegisterFormData } from '../../utils/validation';
 import { colors, spacing, typography } from '../../theme';
 import { useAuthStore } from '../../store/stores/useAuthStore';
 
+type AuthStackParamList = {
+  Login: undefined;
+  Register: undefined;
+  ForgotPassword: undefined;
+};
+
+type NavigationProp = NativeStackNavigationProp<AuthStackParamList>;
+
 export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
+  const navigation = useNavigation<NavigationProp>();
+  const { register } = useAuthStore();
 
   const {
     control,
@@ -38,31 +48,31 @@ export default function RegisterScreen() {
       confirmPassword: '',
     },
   });
-const { register } = useAuthStore();
 
   const password = watch('password');
 
-const onSubmit = async (data: RegisterFormData) => {
-  setIsLoading(true);
-  try {
-    const payload = {
-      username: data.username,
-      email: data.email,
-      phone: data.phone,
-      country: data.country,
-      password: data.password,
-      password_confirm: data.confirmPassword,
-    };
-    console.log('📤 Payload envoyé:', payload);
-    await register(payload);
-    // ← Plus de navigation.navigate() ici, AppNavigator gère tout
-  } catch (error) {
-    const errorMessage = formatApiError(error);
-    Alert.alert("Erreur d'inscription", errorMessage);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  const onSubmit = async (data: RegisterFormData) => {
+    setIsLoading(true);
+    try {
+      const payload = {
+        username: data.username,
+        email: data.email,
+        phone: data.phone,
+        country: data.country,
+        password: data.password,
+        password_confirm: data.confirmPassword,
+      };
+      console.log('📤 Payload envoyé:', payload);
+      await register(payload);
+      // AppNavigator gère la navigation automatiquement
+    } catch (error) {
+      const errorMessage = formatApiError(error);
+      Alert.alert("Erreur d'inscription", errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Screen
       title="Créer un compte"
@@ -210,12 +220,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: spacing.xl,
   },
-
   loginText: {
     ...typography.body,
     color: colors.text.secondary,
   },
-
   loginLink: {
     ...typography.body,
     color: colors.primary[500],
