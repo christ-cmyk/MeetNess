@@ -11,8 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '../../theme';
 import { borderRadius } from '../../theme/spacing';
 import { useTaskStore } from '../../store/stores/useTaskStore';
-import { useAuthStore } from '../../store/stores/useAuthStore';
-
+import { useOrganizationStore } from '../../store/stores/useOrganizationStore';
 type Nav = NativeStackNavigationProp<any>;
 
 const DEFAULT_COLUMNS = [
@@ -26,13 +25,12 @@ const DEFAULT_COLUMNS = [
 export function CreateBoardScreen() {
   const navigation = useNavigation<Nav>();
   const { createBoard, isLoading } = useTaskStore();
-  const user = useAuthStore((s) => s.user);
+  const { organization } = useOrganizationStore();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
 
-  const orgId = (user as any)?.organization_id || (user as any)?.organization?.id;
-
+  const orgId = organization?.id;
   const handleSubmit = async () => {
     if (!name.trim()) {
       Alert.alert('Erreur', 'Le nom du tableau est obligatoire.');

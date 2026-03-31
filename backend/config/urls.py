@@ -15,6 +15,8 @@ urlpatterns = [
     path('api/auth/', include('apps.accounts.urls')),
     path('api/chat/', include('apps.chat.urls')),
     path('api/tasks/', include('apps.tasks.urls')),
+    path('api/goals/', include('apps.goals.urls')),
+    path('api/meetings/', include('apps.meetings.urls')),
 ]
 
 # Media files en développement

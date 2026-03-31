@@ -198,7 +198,11 @@ class CreateTaskSerializer(serializers.Serializer):
         required=False,
         default=list
     )
-    due_date = serializers.DateTimeField(required=False, allow_null=True)
+    due_date = serializers.DateTimeField(
+    required=False,
+    allow_null=True,
+    input_formats=['%Y-%m-%d', '%Y %m %d', '%d/%m/%Y', 'iso-8601']
+)
     estimated_hours = serializers.DecimalField(
         max_digits=5, decimal_places=1,
         required=False, allow_null=True

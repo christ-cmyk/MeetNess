@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Alert, ActivityIndicator,
+  TextInput, Alert, ActivityIndicator, Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { colors, spacing, typography } from '../../theme';
 import { borderRadius } from '../../theme/spacing';
 import { useTaskStore } from '../../store/stores/useTaskStore';
@@ -37,7 +38,8 @@ export function CreateTaskScreen() {
   const [selectedColumn, setSelectedColumn] = useState(columnId || '');
   const [labels, setLabels] = useState<TaskLabel[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-  const [dueDate, setDueDate] = useState('');
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [estimatedHours, setEstimatedHours] = useState('');
 
   const columns = activeBoard?.columns?.sort((a, b) => a.order - b.order) || [];
@@ -58,6 +60,14 @@ export function CreateTaskScreen() {
     );
   };
 
+  const formatDisplayDate = (d: Date) =>
+    `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+
+  const handleDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) setDueDate(selectedDate);
+  };
+
   const handleSubmit = async () => {
     if (!title.trim()) {
       Alert.alert('Erreur', 'Le titre est obligatoire.');
@@ -74,7 +84,7 @@ export function CreateTaskScreen() {
         column_id: selectedColumn,
         priority,
         label_ids: selectedLabels.length > 0 ? selectedLabels : undefined,
-        due_date: dueDate || undefined,
+        due_date: dueDate ? dueDate.toISOString().split('T')[0] : undefined,
         estimated_hours: estimatedHours ? parseFloat(estimatedHours) : undefined,
       });
       navigation.goBack();
@@ -198,13 +208,31 @@ export function CreateTaskScreen() {
 
         {/* Due date */}
         <Text style={styles.label}>Date d'échéance</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="AAAA-MM-JJ"
-          placeholderTextColor={colors.text.tertiary}
-          value={dueDate}
-          onChangeText={setDueDate}
-        />
+        <View style={styles.dateRow}>
+          <TouchableOpacity
+            style={[styles.input, styles.dateButton]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Ionicons name="calendar-outline" size={18} color={dueDate ? colors.primary[500] : colors.text.tertiary} />
+            <Text style={[styles.dateText, !dueDate && { color: colors.text.tertiary }]}>
+              {dueDate ? formatDisplayDate(dueDate) : 'Choisir une date'}
+            </Text>
+          </TouchableOpacity>
+          {dueDate && (
+            <TouchableOpacity style={styles.dateClear} onPress={() => setDueDate(null)}>
+              <Ionicons name="close-circle" size={22} color={colors.text.tertiary} />
+            </TouchableOpacity>
+          )}
+        </View>
+        {showDatePicker && (
+          <DateTimePicker
+            value={dueDate || new Date()}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            minimumDate={new Date()}
+            onChange={handleDateChange}
+          />
+        )}
 
         {/* Estimated hours */}
         <Text style={styles.label}>Heures estimées</Text>
@@ -249,4 +277,8 @@ const styles = StyleSheet.create({
   },
   optionDot: { width: 8, height: 8, borderRadius: 4 },
   optionText: { ...typography.bodySmall, color: colors.text.secondary },
+  dateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  dateButton: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  dateText: { ...typography.body, color: colors.text.primary },
+  dateClear: { padding: spacing.xs },
 });

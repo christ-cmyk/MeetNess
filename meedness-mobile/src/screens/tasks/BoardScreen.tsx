@@ -49,7 +49,7 @@ function TaskCard({ task, onPress, onLongPress }: { task: Task; onPress: () => v
       delayLongPress={300}
     >
       {/* Labels */}
-      {task.labels.length > 0 && (
+      {(task.labels?.length ?? 0) > 0 && (
         <View style={styles.labelsRow}>
           {task.labels.slice(0, 3).map((l) => (
             <View key={l.id} style={[styles.label, { backgroundColor: l.color + '20' }]}>
@@ -63,13 +63,14 @@ function TaskCard({ task, onPress, onLongPress }: { task: Task; onPress: () => v
       <Text style={styles.taskTitle} numberOfLines={2}>{task.title}</Text>
 
       {/* Subtask progress */}
-      {task.subtasks.length > 0 && (
+      {(task.subtasks?.length ?? 0) > 0 && (
         <View style={styles.subtaskRow}>
           <View style={styles.subtaskBg}>
             <View style={[styles.subtaskFill, { width: `${task.progress}%` }]} />
           </View>
           <Text style={styles.subtaskText}>
-            {task.subtasks.filter((s) => s.is_done).length}/{task.subtasks.length}
+            {(task.subtasks ?? []).filter((s) => s.is_done).length}/{task.subtasks?.length ?? 0}
+
           </Text>
         </View>
       )}
@@ -96,14 +97,14 @@ function TaskCard({ task, onPress, onLongPress }: { task: Task; onPress: () => v
 
         {/* Assignee avatars */}
         <View style={styles.avatarsRow}>
-          {task.assigned_to.slice(0, 3).map((a, i) => (
+          {(task.assigned_to ?? []).slice(0, 3).map((a, i) => (
             <View key={a.id} style={[styles.avatar, { marginLeft: i > 0 ? -8 : 0 }]}>
               <Text style={styles.avatarText}>
                 {a.username.charAt(0).toUpperCase()}
               </Text>
             </View>
           ))}
-          {task.assigned_to.length > 3 && (
+          {(task.assigned_to?.length ?? 0) > 3 && (
             <View style={[styles.avatar, { marginLeft: -8, backgroundColor: colors.neutral[300] }]}>
               <Text style={styles.avatarText}>+{task.assigned_to.length - 3}</Text>
             </View>

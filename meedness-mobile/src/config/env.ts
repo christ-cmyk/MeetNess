@@ -1,13 +1,13 @@
 // Configuration de l'API Django pour MeedNess - React Native
 
 // URL de base de l'API
-const DEV_API_URL = 'http://192.168.1.6:8000/api';
+const DEV_API_URL = 'http://192.168.1.8:8000/api';
 const PROD_API_URL = 'https://api.meedness.com/api';
 
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEV_API_URL;
 
 // WebSocket
-const DEV_WS_URL = 'ws://192.168.1.6:8000/ws';
+const DEV_WS_URL = 'ws://192.168.1.8:8000/ws';
 const PROD_WS_URL = 'wss://api.meedness.com/ws';
 
 export const WS_BASE_URL = process.env.EXPO_PUBLIC_WS_URL || DEV_WS_URL;
@@ -71,6 +71,18 @@ export const TASK_ENDPOINTS = {
   COMMENT_DETAIL: (taskId: string, commentId: string) => `/tasks/${taskId}/comments/${commentId}/`,
   TASK_ACTIVITY: (id: string) => `/tasks/${id}/activity/`,
   LABELS: '/tasks/labels/',
+} as const;
+
+// Endpoints Objectifs OKR
+export const GOAL_ENDPOINTS = {
+  LIST: '/goals/',
+  DETAIL: (id: string) => `/goals/${id}/`,
+  KEY_RESULTS: (id: string) => `/goals/${id}/key-results/`,
+  KR_UPDATE: (krId: string) => `/goals/key-results/${krId}/update/`,
+  COMMENTS: (id: string) => `/goals/${id}/comments/`,
+  COMMENT_DETAIL: (goalId: string, commentId: string) =>
+    `/goals/${goalId}/comments/${commentId}/`,
+  STATS: '/goals/stats/',
 } as const;
 
 // Timeout pour les requêtes API (en ms)

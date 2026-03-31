@@ -9,7 +9,7 @@ import { colors } from '../theme';
 import { HomeScreen } from '../screens/main/HomeScreen';
 import { ChatNavigator } from './ChatNavigator';
 import { TasksNavigator } from './TasksNavigator';
-import { GoalsScreen } from '../screens/main/GoalsScreen';
+import { GoalsNavigator } from './GoalsNavigator';
 import { ProfileScreen } from '../screens/main/ProfileScreen';
 import { useChatStore } from '../store/stores/useChatStore';
 
@@ -87,7 +87,7 @@ export function MainNavigator() {
       />
       <Tab.Screen
         name="Goals"
-        component={GoalsScreen}
+        component={GoalsNavigator}
         options={{ tabBarLabel: TAB_LABELS.Goals }}
       />
       <Tab.Screen

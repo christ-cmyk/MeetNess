@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'apps.meetings',
     'apps.votes',
     'apps.subscriptions',
+    'apps.goals',
 ]
 
 FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')

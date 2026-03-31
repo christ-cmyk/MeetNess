@@ -194,7 +194,7 @@ class TaskListCreateView(APIView):
         serializer = TaskMinimalSerializer(tasks, many=True, context={'request': request})
         return Response(serializer.data)
 
-    def post(self, request, board_id):
+    def post(self, request, board_id):        
         try:
             board = Board.objects.get(id=board_id, is_active=True)
             membership = get_org_membership(request.user, board.organization_id)

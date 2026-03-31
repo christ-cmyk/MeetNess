@@ -1,10 +1,10 @@
 from django.apps import AppConfig
 
 
-class MeetingsConfig(AppConfig):
+class GoalsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.meetings'
-    verbose_name = 'Réunions'
+    name = 'apps.goals'
+    verbose_name = 'Objectifs'
 
     def ready(self):
         pass
